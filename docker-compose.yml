@@ -1,0 +1,83 @@
+services:
+  broker:
+    container_name: broker
+    image: rabbitmq:3.13.4-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - broker_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - data_processing
+    healthcheck:
+      test: ['CMD', 'rabbitmqctl', 'status']
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  processor:
+    container_name: processor
+    restart: always
+    build:
+      context: ./processor
+      dockerfile: Dockerfile
+    env_file:
+      - ./processor/.env
+    ports:
+      - 3000:3000
+    volumes:
+      - ./processor:/app
+      - /app/node_modules
+    networks:
+      - data_processing
+    depends_on:
+      broker:
+        condition: service_healthy
+
+  debt:
+    container_name: debt
+    restart: always
+    build:
+      context: ./processor
+      dockerfile: Dockerfile
+    env_file:
+      - ./debt/.env
+    ports:
+      - 3001:3001
+    volumes:
+      - ./debt:/app
+      - /app/node_modules
+    networks:
+      - data_processing
+    depends_on:
+      broker:
+        condition: service_healthy
+
+  cache:
+    container_name: cache
+    # image: redis:7.2.5-alpine
+    build:
+      context: ./cache
+      dockerfile: Dockerfile
+    env_file:
+      - ./cache/.env
+    ports:
+      - 6379:6379
+    # volumes:
+    #   # - ./cache/redis.conf:/usr/local/etc/redis/redis.conf
+    #   - ./cache/redis.conf.template:/usr/local/etc/redis/redis.conf.template
+    #   - ./cache/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    # command: ['redis-server', '/usr/local/etc/redis/redis.conf']
+    # entrypoint: /usr/local/bin/entrypoint.sh
+    networks:
+      - data_processing
+
+volumes:
+  broker_data:
+
+networks:
+  data_processing:
+    driver: bridge

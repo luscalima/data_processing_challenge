@@ -1,0 +1,3 @@
+user default on nopass ~* &* +@all
+user ${REDIS_USERNAME} on >${REDIS_PASSWORD} ~* &* +@all
+requirepass ${REDIS_PASSWORD}
