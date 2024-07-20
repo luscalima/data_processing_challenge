@@ -1,0 +1,3 @@
+https://github.com/davydocsurg/chat-server/tree/develop
+
+https://stackoverflow.com/questions/73588664/econnrefused-rabbitmq-between-docker-containers
