@@ -2,3 +2,4 @@
 /**/.env
 
 processor/data/**.csv
+!processor/data/input.csv
